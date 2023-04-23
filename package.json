@@ -1,0 +1,29 @@
+{
+  "name": "intelishare-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:chiucchi/intelishare-api.git",
+  "author": "chiucchi <gchiucchi01@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+		"dev": "nodemon --exec ts-node ./src/index.ts",
+		"migration:generate": "typeorm-ts-node-commonjs -d ./src/data-source.ts migration:generate ./src/migrations/default",
+		"migration:run": "typeorm-ts-node-commonjs -d ./src/data-source.ts migration:run",
+		"build": "rm -rf ./dist && tsc",
+		"start": "node ./dist/index.js"
+	},
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.15.13",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "pg": "^8.10.0",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.3.15"
+  }
+}
