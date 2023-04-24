@@ -2,31 +2,24 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequestError, UnauthorizedError } from "../helpers/api-errors";
 import { userRepository } from "../repositories/userRepository";
 import jwt from "jsonwebtoken";
+import { returnId } from "../helpers/user-id";
 
-type JwtPayload = {
-    id: number;
-}
+export const authMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id = returnId(req);
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    const { authorization } = req.headers
+  const user = await userRepository.findOneBy({ id });
 
-        if (!authorization) {
-            throw new UnauthorizedError("Não autorizado");
-        }
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
 
-        const token = authorization.split(' ')[1]
+  const { password: _, ...loggedUser } = user;
 
-        const { id } = jwt.verify(token, process.env.JWT_PASS ?? '') as JwtPayload
+  req.user = loggedUser;
 
-        const user = await userRepository.findOneBy({ id });
-
-        if (!user) {
-            throw new BadRequestError("User not found");
-        }
-
-        const { password: _, ...loggedUser } = user;
-
-        req.user = loggedUser
-
-        next()
-}
+  next();
+};

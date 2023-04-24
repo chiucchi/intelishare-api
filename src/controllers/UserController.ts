@@ -1,63 +1,76 @@
 import { Request, Response } from "express";
 import { userRepository } from "../repositories/userRepository";
-import { BadRequestError, UnauthorizedError } from "../helpers/api-errors";
+import { BadRequestError } from "../helpers/api-errors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export class UserController {
-    async create(req: Request, res: Response) {
-        const { name, email, password, telephone, birthDate, uf } = req.body;
+  async create(req: Request, res: Response) {
+    const { name, email, password, telephone, birthDate, uf } = req.body;
 
-        const userExists = await userRepository.findOneBy({ email });
+    const userExists = await userRepository.findOneBy({ email });
 
-        if (userExists) {
-            throw new BadRequestError("User already exists");
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = userRepository.create({
-            name,
-            email,
-            password: hashedPassword,
-            telephone,
-            birthDate,
-            uf,
-            notifications: [],
-        });
-
-        await userRepository.save(newUser);
-
-        const { password: _, ...userWithoutPassword } = newUser;
-
-        return res.status(201).json(userWithoutPassword);
+    if (userExists) {
+      throw new BadRequestError("User already exists");
     }
 
-    async login(req: Request, res: Response) {
-        const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await userRepository.findOneBy({ email });
+    const newUser = userRepository.create({
+      name,
+      email,
+      password: hashedPassword,
+      telephone,
+      birthDate,
+      uf,
+      notifications: [],
+    });
 
-        if (!user) {
-            throw new BadRequestError("Email or password incorrect");
-        }
+    await userRepository.save(newUser);
 
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    const { password: _, ...userWithoutPassword } = newUser;
 
-        if (!isPasswordCorrect) {
-            throw new BadRequestError("Email or password incorrect");
-        }
+    return res.status(201).json(userWithoutPassword);
+  }
 
-        const token = jwt.sign({ id: user.id, name: user.name, notifications: user.notifications }, process.env.JWT_PASS ?? '', { expiresIn: '1d'})
+  async login(req: Request, res: Response) {
+    const { email, password } = req.body;
 
-        const { password: _, ...userWithoutPassword } = user;
+    const user = await userRepository.findOneBy({ email });
 
-        return res.json({user: userWithoutPassword, token: token});
+    if (!user) {
+      throw new BadRequestError("Email or password incorrect");
     }
 
-    async getProfile(req: Request, res: Response) {
-        
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-        return res.json(req.user);
+    if (!isPasswordCorrect) {
+      throw new BadRequestError("Email or password incorrect");
     }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        notifications: user.notifications,
+      },
+      process.env.JWT_PASS ?? "",
+      { expiresIn: "1d" }
+    );
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return res.json({ user: userWithoutPassword, token: token });
+  }
+
+  async getProfile(req: Request, res: Response) {
+    return res.json(req.user);
+  }
+
+  async update(req: Request, res: Response) {} // TODO -- pensar se o role de notificacao vai ser usado aqui tbm ou criarei separado
+
+  async delete(req: Request, res: Response) {} // TODO
+
+  // list user investigations
 }
