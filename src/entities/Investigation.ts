@@ -1,27 +1,45 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { User } from "./User";
 
-@Entity('investigations')
+@Entity("investigations")
 export class Investigation {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ type: 'text', nullable: false})
-    name: string;
+  @Column({ type: "text" })
+  name: string;
 
-    @Column({ type: 'text', nullable: false})
-    author: number;
+  @Column({ type: "text" })
+  author: string;
 
-    @Column({ type: 'text', array: true })
-    tags: string[];
+  @Column({ type: "date" })
+  date: Date;
 
-    @Column({ type: "integer", array: true})
-    permitedUsers: number[]; // vai ser um array de ids de usuários
+  @Column({ type: "text", nullable: true })
+  uf: string;
 
-    @Column({ type: "bool", default: true })
-    isPublic: boolean;
+  @Column({ type: "bool", default: true })
+  isPublic: boolean;
 
-    @ManyToOne(() => User, user => user.investigations)
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+  @Column({ type: "text", array: true })
+  involveds: string[]; // vai ser um array de nomes de pessoas envolvidas
+
+  @Column({ type: "text", array: true })
+  tags: string[]; // tags da investigação
+
+  @Column({ type: "bytea", nullable: true })
+  files: Buffer; // vai salvar um arquivo .zip de até 1gb
+
+  @Column({ type: "integer", array: true })
+  permitedUsers: number[]; // vai ser um array de ids de usuários
+
+  @ManyToOne(() => User, (user) => user.investigations)
+  @JoinColumn({ name: "user_id" })
+  user: User;
 }

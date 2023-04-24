@@ -1,32 +1,32 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Investigation } from "./Investigation";
 
-@Entity('users') 
+@Entity("users")
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ type: 'text'})
-    name: string;
+  @Column({ type: "text" })
+  name: string;
 
-    @Column({ type: 'text', unique: true})
-    email: string;
+  @Column({ type: "text", unique: true })
+  email: string;
 
-    @Column({ type: 'text'})
-    password: string;
+  @Column({ type: "text" })
+  password: string;
 
-    @Column({ type: 'text' })
-    telephone: string;
+  @Column({ type: "text" })
+  telephone: string;
 
-    @Column({ type: 'timestamp' })
-    birthDate: Date;
+  @Column({ type: "date", nullable: true })
+  birthDate: Date;
 
-    @Column({ type: 'text'})
-    uf: string;
+  @Column({ type: "text" })
+  uf: string;
 
-    @Column({ type: 'text', array: true })
-    notifications: string[];
+  @Column({ type: "text", array: true })
+  notifications: string[];
 
-    @OneToMany(() => Investigation, investigation => investigation.user)
-    investigations: Investigation[];
+  @OneToMany(() => Investigation, (investigation) => investigation.user)
+  investigations: Investigation[];
 }
