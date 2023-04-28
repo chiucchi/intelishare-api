@@ -6,7 +6,7 @@ import { userRepository } from "../repositories/userRepository";
 
 export class InvestigationController {
   async create(req: Request, res: Response) {
-    const id = returnId(req);
+    const id = returnId(res, req);
     const { name, author, date, involveds, tags, permitedUsers, isPublic } =
       req.body;
 
@@ -15,9 +15,12 @@ export class InvestigationController {
     });
 
     if (investigationExists) {
-      throw new BadRequestError(
+      return res
+        .status(400)
+        .json({ message: "Uma investigação com esse nome já existe" });
+      /* throw new BadRequestError(
         "Investigation with that name already exists, please change the name"
-      );
+      ); */
     }
 
     const user = await userRepository.findOneBy({ id });
@@ -51,7 +54,7 @@ export class InvestigationController {
   }
 
   async listByUser(req: Request, res: Response) {
-    const id = returnId(req);
+    const id = returnId(res, req);
 
     const investigations = await investigationRepository.find({
       where: { user: { id } },
@@ -61,19 +64,62 @@ export class InvestigationController {
     return res.status(200).json(investigations);
   }
 
-  async update(req: Request, res: Response) {} // TODO
+  async update(req: Request, res: Response) {
+    const { id } = req.params;
 
-  async delete(req: Request, res: Response) {
-    /* const { id } = req.params;
-
-    const investigation = await investigationRepository.findOneBy({ id });
+    const investigation = await investigationRepository.findOneBy({
+      id: parseInt(id),
+    });
 
     if (!investigation) {
-      throw new BadRequestError("Investigation not found");
+      return res.status(400).json({ message: "Investigação não encontrada" });
     }
 
-    await investigationRepository.delete(investigation);
+    const { name, author, date, involveds, tags, permitedUsers, isPublic } =
+      req.body;
 
-    return res.status(200).json({ message: "Investigation deleted" }); */
+    investigation.name = name ?? investigation.name;
+    investigation.author = author ?? investigation.author;
+    investigation.date = date ?? investigation.date;
+    investigation.involveds = involveds ?? investigation.involveds;
+    investigation.tags = tags ?? investigation.tags;
+    investigation.permitedUsers = permitedUsers ?? investigation.permitedUsers;
+    investigation.isPublic = isPublic ?? investigation.isPublic;
+
+    await investigationRepository.save(investigation);
+
+    return res.status(200).json(investigation);
+  }
+
+  async detailById(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const investigation = await investigationRepository.findOneBy({
+      id: parseInt(id),
+    });
+
+    if (!investigation) {
+      return res.status(400).json({ message: "Investigação não encontrada" });
+    }
+
+    return res.status(200).json(investigation);
+  }
+
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const investigation = await investigationRepository.findOneBy({
+      id: parseInt(id),
+    });
+
+    // conferir se a ivnestigação é de quem mandou a requisição
+
+    if (!investigation) {
+      return res.status(400).json({ message: "Investigação não encontrada" });
+    }
+
+    await investigationRepository.delete(investigation.id);
+
+    return res.status(200).json({ message: "Investigação deletada" });
   }
 }
