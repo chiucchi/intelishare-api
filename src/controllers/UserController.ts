@@ -11,6 +11,9 @@ export class UserController {
     const userExists = await userRepository.findOneBy({ email });
 
     if (userExists) {
+      return res
+        .status(400)
+        .json({ message: "Erro na criação, favor tentar novamente" });
       throw new BadRequestError("User already exists");
     }
 
@@ -39,12 +42,14 @@ export class UserController {
     const user = await userRepository.findOneBy({ email });
 
     if (!user) {
+      return res.status(400).json({ message: "Email ou senha incorretos" });
       throw new BadRequestError("Email or password incorrect");
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "Email ou senha incorretos" });
       throw new BadRequestError("Email or password incorrect");
     }
 
@@ -55,8 +60,7 @@ export class UserController {
         email: user.email,
         notifications: user.notifications,
       },
-      process.env.JWT_PASS ?? "",
-      { expiresIn: "1d" }
+      process.env.JWT_PASS ?? ""
     );
 
     const { password: _, ...userWithoutPassword } = user;
@@ -68,7 +72,7 @@ export class UserController {
     return res.json(req.user);
   }
 
-  async update(req: Request, res: Response) {} // TODO -- pensar se o role de notificacao vai ser usado aqui tbm ou criarei separado
+  async update(req: Request, res: Response) {} // TODO -- pensar se o role de notificacao vai ser usado aqui tbm ou criarei uma funcao separada
 
   async delete(req: Request, res: Response) {} // TODO
 

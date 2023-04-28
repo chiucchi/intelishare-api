@@ -9,11 +9,12 @@ export const authMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = returnId(req);
+  const id = returnId(res, req);
 
   const user = await userRepository.findOneBy({ id });
 
   if (!user) {
+    return res.status(401).json({ message: "Usuário não encontrado" });
     throw new BadRequestError("User not found");
   }
 
