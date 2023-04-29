@@ -6,8 +6,8 @@ import { InvestigationController } from "./controllers/InvestigationController";
 const routes = Router();
 
 routes.post("/user", new UserController().create);
-
 routes.post("/login", new UserController().login);
+routes.get("/users", new UserController().listUsers);
 
 routes.use(authMiddleware);
 

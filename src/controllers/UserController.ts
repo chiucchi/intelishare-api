@@ -76,5 +76,11 @@ export class UserController {
 
   async delete(req: Request, res: Response) {} // TODO
 
+  async listUsers(req: Request, res: Response) {
+    const users = await userRepository.find();
+
+    return res.json(users);
+  }
+
   // list user investigations
 }

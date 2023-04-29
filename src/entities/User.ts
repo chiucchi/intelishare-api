@@ -25,7 +25,11 @@ export class User {
   uf: string;
 
   @Column({ type: "text", array: true })
-  notifications: string[];
+  notifications: {
+    message: string;
+    relatedInvestigationId: number;
+    relatedInvestigationAuthor: number;
+  }[];
 
   @OneToMany(() => Investigation, (investigation) => investigation.user)
   investigations: Investigation[];
