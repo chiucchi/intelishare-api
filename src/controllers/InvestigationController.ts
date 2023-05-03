@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { investigationRepository } from "../repositories/investigationRepository";
 import { returnId } from "../helpers/user-id";
 import { userRepository } from "../repositories/userRepository";
-import { UserController } from "./UserController";
-import { Investigation } from "../entities/Investigation";
 import { findRelatedTags } from "../helpers/find-tags";
 
 export class InvestigationController {
