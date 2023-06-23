@@ -27,6 +27,6 @@ export const returnId = (res: Response, req: Request) => {
       }
     ) as unknown as JwtPayload;
 
-    return teste.id;
+    return teste?.id;
   }
 };
