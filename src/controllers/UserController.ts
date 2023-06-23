@@ -3,6 +3,7 @@ import { userRepository } from "../repositories/userRepository";
 import { BadRequestError } from "../helpers/api-errors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { returnId } from "../helpers/user-id";
 
 export class UserController {
   async create(req: Request, res: Response) {
@@ -58,7 +59,6 @@ export class UserController {
         id: user.id,
         name: user.name,
         email: user.email,
-        notifications: user.notifications,
       },
       process.env.JWT_PASS ?? ""
     );
@@ -80,6 +80,18 @@ export class UserController {
     const users = await userRepository.find();
 
     return res.json(users);
+  }
+
+  async getUserNotifications(req: Request, res: Response) {
+    const id = returnId(res, req);
+
+    const user = await userRepository.findOneBy({ id });
+
+    if (!user) {
+      return res.status(400).json({ message: "Usuário não encontrado" });
+    }
+
+    return res.json(user.notifications);
   }
 
   // list user investigations

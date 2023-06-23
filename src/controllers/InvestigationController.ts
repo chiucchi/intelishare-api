@@ -120,6 +120,8 @@ export class InvestigationController {
 
     await investigationRepository.save(newInvestigation);
 
+    console.log("mandando pro helper");
+
     await findRelatedTags(res, newInvestigation);
 
     return res.status(201).json(newInvestigation);

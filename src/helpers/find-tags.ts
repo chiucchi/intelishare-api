@@ -12,16 +12,26 @@ export const findRelatedTags = async (
 
   const recommendedInvestigations = [];
   for (const inv of allInvestigations) {
-    const commonTags = inv.tags.filter((tag: string) =>
-      investigationTags.includes(tag)
+    const commonInvolveds = inv.involveds.filter((involved: string) =>
+      investigation.involveds.includes(involved)
     );
-    if (commonTags.length >= 1) {
-      // mais de 5 tags em comuns devem ser achadas entre as investigações
-      recommendedInvestigations.push(inv);
+
+    console.log(commonInvolveds, "commonInvolveds");
+
+    if (commonInvolveds.length >= 1) {
+      // só checa as tags se os envolvidos forem os mesmos
+      const commonTags = inv.tags.filter((tag: string) =>
+        investigationTags.includes(tag)
+      );
+      if (commonTags.length >= 1) {
+        // mudar o numero 1 para a quant de tags em comuns devem ser achadas entre as investigações
+        recommendedInvestigations.push(inv);
+      }
+      // usar o algoritmo para checar uf de origem também?
     }
   }
 
-  console.log(recommendedInvestigations);
+  console.log(recommendedInvestigations, "recommendedInvestigations");
 
   // atualizar o campo de notificações dos usuários relacionados com as investigações recomendadas
   const userAuthor = await userRepository.findOneBy({
@@ -43,17 +53,62 @@ export const findRelatedTags = async (
 
     const userNotifications = user.notifications; // pega as notificações do usuário relacionado com a investigação recomendada
 
-    userNotifications.push({
-      message: `A investigação ${investigation.name} possui tags em comum com a sua investigação ${inv.name}`, // manda uma notificação para o usuário relacionado com a investigação recomendada
-      relatedInvestigationId: investigation.id,
-      relatedInvestigationAuthor: investigation.user.id,
-    });
+    if (userAuthor.id !== user.id) {
+      // pra não pegar as próprias investigações
+      if (inv.isPublic === false) {
+        userNotifications.push({
+          type: "access-request",
+          title: "Pedido de acesso à investigação",
+          description: `${userAuthor?.name} pediu acesso à sua investigação ${inv?.name}`,
+          relatedInvestigationId: investigation.id,
+          relatedInvestigationAuthor: userAuthor.id,
+          response: false,
+        }); // mandar investigação pedindo acesso a investigação privada
+        userAuthorNotifications.push({
+          type: "inform-ask-access",
+          title: `A investigação ${inv.name} pode conter informações relevantes à sua investigação ${investigation.name}`,
+          description: `A investigação ${inv.name} é privada e para visualizar é necessário acesso`,
+          relatedInvestigationId: inv.id,
+          relatedInvestigationAuthor: user.id,
+          askAccess: false,
+        }); // mandar notificação avisando que achou uma investigação correlata a dele porém privada
+      } else if (investigation.isPublic === false) {
+        userAuthorNotifications.push({
+          type: "access-request",
+          title: "Pedido de acesso à investigação",
+          description: `${userAuthor?.name} pediu acesso à sua investigação ${inv?.name}`,
+          relatedInvestigationId: investigation.id,
+          relatedInvestigationAuthor: user.id,
+          response: false,
+        }); // mandar investigação pedindo acesso a investigação privada
+        userNotifications.push({
+          type: "inform-ask-access",
+          title: `A investigação ${investigation.name}  pode conter informações relevantes à sua investigação ${inv.name}`,
+          description: `A investigação ${investigation.name} é privada e para visualizar é necessário acesso`,
+          relatedInvestigationId: investigation.id,
+          relatedInvestigationAuthor: userAuthor.id,
+          askAccess: false,
+        }); // mandar notificação avisando que achou uma investigação correlata a dele porém privada
+      } else {
+        userNotifications.push({
+          type: "inform",
+          title: `A investigação ${investigation.name}  pode conter informações relevantes à sua investigação ${inv.name}`,
+          description: "",
+          relatedInvestigationId: inv.id,
+          relatedInvestigationAuthor: user.id,
+        }); // mandar investigação pedindo acesso a investigação privada
+        userAuthorNotifications.push({
+          type: "inform",
+          title: `A investigação ${inv.name}  pode conter informações relevantes à sua investigação ${investigation.name}`,
+          description: ``,
+          relatedInvestigationId: inv.id,
+          relatedInvestigationAuthor: user.id,
+        });
+      }
+    }
 
-    userAuthorNotifications.push({
-      message: `A investigação ${inv.name} possui tags em comum com a sua investigação ${investigation.name}`, // manda uma notificação para o usuário que criou a investigação
-      relatedInvestigationId: inv.id,
-      relatedInvestigationAuthor: inv.permitedUsers[0],
-    });
+    // const parsedNotifications = JSON.stringify(userNotifications);
+    // const parsedAuthorNotifications = JSON.stringify(userAuthorNotifications);
 
     await userRepository.save(user); // salva as notificações do usuário relacionado com a investigação recomendada
     await userRepository.save(userAuthor); // salva as notificações do usuário que criou a investigação
